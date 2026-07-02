@@ -95,20 +95,39 @@ html, body, [class*="css"] { font-family: 'IBM Plex Sans', sans-serif; }
 }
 [data-testid="stSidebar"] > div { padding-top: 0; }
 
-/* Keep the sidebar open/close control visible; only hide the deploy toolbar */
-#MainMenu, footer { visibility: hidden; }
-[data-testid="stHeader"] { background: transparent !important; }
-[data-testid="stToolbar"] { display: none !important; }
-[data-testid="stDecoration"] { display: none !important; }
-[data-testid*="ollapse"] svg { color: var(--paper) !important; fill: var(--paper) !important; }
-[data-testid*="ollapsedControl"] {
+/* Header: keep sidebar toggle visible, hide only the deploy/main menu */
+[data-testid="stHeader"] {
+    background: rgba(0,0,0,.55) !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255,255,255,.06);
+    height: auto !important;
+}
+[data-testid="stMainMenu"], [data-testid="stStatusWidget"], footer { display: none !important; }
+
+/* Sidebar collapse/expand buttons: style but never hide */
+[data-testid="stSidebarCollapsedControl"],
+[data-testid="stSidebarCollapseButton"],
+[data-testid="stExpandSidebarButton"],
+[kind="header"] {
     background: rgba(19,19,19,.75) !important;
     backdrop-filter: blur(12px);
-    border: 1px solid rgba(255,255,255,.12) !important;
+    border: 1px solid rgba(255,255,255,.14) !important;
     border-radius: 50% !important;
     transition: background .2s cubic-bezier(.4,0,.2,1), transform .2s cubic-bezier(.4,0,.2,1) !important;
+    color: var(--paper) !important;
+    opacity: 1 !important;
+    visibility: visible !important;
 }
-[data-testid*="ollapsedControl"]:hover { background: rgba(255,255,255,.1) !important; transform: scale(1.08); }
+[data-testid="stSidebarCollapsedControl"] svg,
+[data-testid="stSidebarCollapseButton"] svg,
+[data-testid="stExpandSidebarButton"] svg { color: var(--paper) !important; fill: var(--paper) !important; }
+[data-testid="stSidebarCollapsedControl"]:hover,
+[data-testid="stSidebarCollapseButton"]:hover,
+[data-testid="stExpandSidebarButton"]:hover {
+    background: rgba(255,255,255,.14) !important;
+    transform: scale(1.08);
+}
 
 h1, h2, h3 { font-family: 'IBM Plex Sans', sans-serif; }
 
