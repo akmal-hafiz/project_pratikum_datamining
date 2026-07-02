@@ -6,8 +6,9 @@ Aplikasi prediksi risiko depresi mahasiswa berbasis machine learning, dibuat unt
 
 ## Kelompok 7 — Kelas I231B
 
-- Muhammad Akmal Hafiz
-- Pranaja Eza
+- Muhammad Akmal Hafiz (312310184)
+- Pranaja
+- eza
 
 ## Tentang Aplikasi
 
