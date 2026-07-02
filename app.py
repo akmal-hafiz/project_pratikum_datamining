@@ -3,6 +3,8 @@ import pandas as pd
 import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
+import base64
+from pathlib import Path
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.naive_bayes import GaussianNB
 from sklearn.model_selection import train_test_split
@@ -11,10 +13,16 @@ from sklearn.metrics import accuracy_score, classification_report, confusion_mat
 import warnings
 warnings.filterwarnings('ignore')
 
+LOGO_PATH = Path(__file__).parent / "assets" / "logo.jpg"
+
+@st.cache_data
+def _logo_b64() -> str:
+    return base64.b64encode(LOGO_PATH.read_bytes()).decode()
+
 # ── Page config ─────────────────────────────────────────────────────────────
 st.set_page_config(
     page_title="MindScope · Student Depression AI",
-    page_icon=":material/track_changes:",
+    page_icon=str(LOGO_PATH),
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -57,7 +65,7 @@ def sub_header(text: str, help_text: str | None = None):
                         unsafe_allow_html=True)
 
 
-# ── Global CSS — monochrome, hairline, zero gradient ────────────────────────
+# ── Global CSS: monochrome, hairline, zero gradient ─────────────────────────
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
@@ -78,29 +86,53 @@ html, body, [class*="css"] { font-family: 'IBM Plex Sans', sans-serif; }
 
 .stApp { background-color: var(--ink); color: var(--text); }
 
+/* ── Sidebar: frosted glass panel ── */
 [data-testid="stSidebar"] {
-    background: var(--surface);
-    border-right: 1px solid var(--line);
+    background: rgba(12,12,12,.7);
+    backdrop-filter: blur(20px) saturate(140%);
+    -webkit-backdrop-filter: blur(20px) saturate(140%);
+    border-right: 1px solid rgba(255,255,255,.08);
 }
 [data-testid="stSidebar"] > div { padding-top: 0; }
 
-#MainMenu, footer, header { visibility: hidden; }
+/* Keep the sidebar open/close control visible; only hide the deploy toolbar */
+#MainMenu, footer { visibility: hidden; }
+[data-testid="stHeader"] { background: transparent !important; }
+[data-testid="stToolbar"] { display: none !important; }
+[data-testid="stDecoration"] { display: none !important; }
+[data-testid*="ollapse"] svg { color: var(--paper) !important; fill: var(--paper) !important; }
+[data-testid*="ollapsedControl"] {
+    background: rgba(19,19,19,.75) !important;
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,.12) !important;
+    border-radius: 50% !important;
+    transition: background .2s cubic-bezier(.4,0,.2,1), transform .2s cubic-bezier(.4,0,.2,1) !important;
+}
+[data-testid*="ollapsedControl"]:hover { background: rgba(255,255,255,.1) !important; transform: scale(1.08); }
 
 h1, h2, h3 { font-family: 'IBM Plex Sans', sans-serif; }
 
 /* ── Motion (respects reduced-motion) ── */
-@keyframes riseIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
-.rise { animation: riseIn .5s ease both; }
+@keyframes riseIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+.rise { animation: riseIn .55s cubic-bezier(.16,1,.3,1) both; }
 @media (prefers-reduced-motion: reduce) { .rise { animation: none; } }
 
-/* ── KPI cards ── */
+/* ── KPI cards: frosted glass, lifts on hover ── */
 .kpi-card {
-    background: var(--surface-2);
-    border: 1px solid var(--line);
+    background: rgba(255,255,255,.035);
+    backdrop-filter: blur(14px) saturate(130%);
+    -webkit-backdrop-filter: blur(14px) saturate(130%);
+    border: 1px solid rgba(255,255,255,.09);
     border-radius: 0;
     padding: 22px 20px;
     text-align: left;
     position: relative;
+    transition: transform .3s cubic-bezier(.16,1,.3,1), border-color .3s, background .3s;
+}
+.kpi-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(255,255,255,.22);
+    background: rgba(255,255,255,.06);
 }
 .kpi-val {
     font-family: 'IBM Plex Mono', monospace;
@@ -138,8 +170,10 @@ h1, h2, h3 { font-family: 'IBM Plex Sans', sans-serif; }
 
 /* ── Info / status boxes (monochrome, weight-differentiated) ── */
 .box-info {
-    background: var(--surface-2);
-    border: 1px solid var(--line);
+    background: rgba(255,255,255,.03);
+    backdrop-filter: blur(14px) saturate(130%);
+    -webkit-backdrop-filter: blur(14px) saturate(130%);
+    border: 1px solid rgba(255,255,255,.08);
     border-radius: 0;
     padding: 16px 18px;
     color: var(--text-dim);
@@ -180,11 +214,19 @@ h1, h2, h3 { font-family: 'IBM Plex Sans', sans-serif; }
     display: flex;
     align-items: flex-start;
     gap: 14px;
-    background: var(--surface-2);
-    border: 1px solid var(--line);
+    background: rgba(255,255,255,.035);
+    backdrop-filter: blur(14px) saturate(130%);
+    -webkit-backdrop-filter: blur(14px) saturate(130%);
+    border: 1px solid rgba(255,255,255,.09);
     border-radius: 0;
     padding: 14px 16px;
     margin-bottom: 10px;
+    transition: transform .25s cubic-bezier(.16,1,.3,1), border-color .25s, background .25s;
+}
+.step-card:hover {
+    transform: translateX(3px);
+    border-color: rgba(255,255,255,.2);
+    background: rgba(255,255,255,.06);
 }
 .step-num {
     font-family: 'IBM Plex Mono', monospace;
@@ -201,7 +243,7 @@ h1, h2, h3 { font-family: 'IBM Plex Sans', sans-serif; }
     margin-top: 1px;
 }
 
-/* ── Buttons: solid inversion, zero radius, zero gradient ── */
+/* ── Buttons: solid inversion, zero radius, zero gradient, tactile hover ── */
 .stButton > button, .stFormSubmitButton > button, .stDownloadButton > button {
     background: var(--paper) !important;
     color: var(--ink) !important;
@@ -210,34 +252,49 @@ h1, h2, h3 { font-family: 'IBM Plex Sans', sans-serif; }
     padding: 10px 22px !important;
     font-weight: 600 !important;
     font-family: 'IBM Plex Sans', sans-serif !important;
-    transition: background .15s, color .15s !important;
+    transition: background .25s cubic-bezier(.4,0,.2,1), color .25s, transform .2s cubic-bezier(.4,0,.2,1), box-shadow .25s !important;
     width: 100% !important;
 }
 .stButton > button:hover, .stFormSubmitButton > button:hover, .stDownloadButton > button:hover {
     background: var(--ink) !important;
     color: var(--paper) !important;
     border-color: var(--paper) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 28px rgba(255,255,255,.14);
+}
+.stButton > button:active, .stFormSubmitButton > button:active, .stDownloadButton > button:active {
+    transform: translateY(0) scale(.98);
+    box-shadow: none;
 }
 
-/* Sidebar nav buttons: outline default, filled = current page (via disabled) */
+/* Sidebar nav buttons: outline default, filled = current page (via disabled), accent slide-in on hover */
 [data-testid="stSidebar"] .stButton > button {
     background: transparent !important;
     color: var(--text-dim) !important;
     border: 1px solid transparent !important;
+    border-left: 2px solid transparent !important;
     text-align: left !important;
     justify-content: flex-start !important;
     padding: 10px 14px !important;
     font-weight: 500 !important;
+    transform: none !important;
+    box-shadow: none !important;
+    transition: background .25s cubic-bezier(.4,0,.2,1), color .25s, border-color .25s, padding-left .25s cubic-bezier(.4,0,.2,1) !important;
 }
 [data-testid="stSidebar"] .stButton > button:hover {
-    background: var(--surface-2) !important;
+    background: rgba(255,255,255,.06) !important;
     color: var(--paper) !important;
-    border-color: var(--line) !important;
+    border-color: rgba(255,255,255,.1) !important;
+    border-left-color: var(--paper) !important;
+    padding-left: 18px !important;
+    transform: none !important;
+    box-shadow: none !important;
 }
 [data-testid="stSidebar"] .stButton > button:disabled {
     background: var(--paper) !important;
     color: var(--ink) !important;
     border-color: var(--paper) !important;
+    border-left-color: var(--paper) !important;
     opacity: 1 !important;
     font-weight: 600 !important;
 }
@@ -276,20 +333,29 @@ hr { border-color: var(--line) !important; }
     background: transparent !important;
     border: 1px solid var(--line) !important;
     color: var(--text-dim) !important;
+    transition: all .2s cubic-bezier(.4,0,.2,1) !important;
 }
 [data-testid="stPopover"] button:hover {
     border-color: var(--paper) !important;
     color: var(--paper) !important;
-    background: var(--surface-2) !important;
+    background: rgba(255,255,255,.08) !important;
+    transform: scale(1.12);
 }
 [data-testid="stPopoverBody"] {
-    background: var(--surface-2) !important;
-    border: 1px solid var(--line) !important;
+    background: rgba(19,19,19,.82) !important;
+    backdrop-filter: blur(18px) saturate(140%) !important;
+    -webkit-backdrop-filter: blur(18px) saturate(140%) !important;
+    border: 1px solid rgba(255,255,255,.1) !important;
     border-radius: 0 !important;
 }
 
-/* ── Tutorial dialog ── */
-[data-testid="stDialog"] [data-testid="stVerticalBlockBorderWrapper"] { background: var(--surface); }
+/* ── Tutorial dialog: frosted glass panel ── */
+[data-testid="stDialog"] [data-testid="stVerticalBlockBorderWrapper"] {
+    background: rgba(12,12,12,.82) !important;
+    backdrop-filter: blur(22px) saturate(140%) !important;
+    -webkit-backdrop-filter: blur(22px) saturate(140%) !important;
+    border: 1px solid rgba(255,255,255,.1) !important;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -315,7 +381,7 @@ _ss()
 TUT_STEPS = [
     ('mark', 'Selamat datang di MindScope',
      'Aplikasi ini memprediksi risiko depresi mahasiswa dari data akademik dan gaya hidup, '
-     'memakai machine learning. Dibuat untuk tugas data mining — bukan alat diagnosis klinis.'),
+     'memakai machine learning. Dibuat untuk tugas data mining, bukan alat diagnosis klinis.'),
     ('upload', 'Mulai dari data',
      'Unggah dataset CSV di halaman Data &amp; Eksplorasi. Sistem otomatis membersihkan nilai '
      'kosong dan mengubah kategori jadi angka yang bisa dibaca model.'),
@@ -387,7 +453,7 @@ def preprocess(df: pd.DataFrame):
     df = df.copy()
     if 'id' in df.columns:
         df = df.drop('id', axis=1)
-    # Profession is near-constant (99.9% Student) — drop to reduce noise
+    # Profession is near-constant (99.9% Student), drop to reduce noise
     if 'Profession' in df.columns:
         df = df.drop('Profession', axis=1)
 
@@ -439,7 +505,7 @@ FEAT_SCALE = ['#0b3d3d', '#20c997']
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-# SIDEBAR — custom icon nav (Material Symbols via native `icon=`)
+# SIDEBAR: custom icon nav (Material Symbols via native `icon=`)
 # ═══════════════════════════════════════════════════════════════════════════
 NAV = [
     ('dashboard', 'Dashboard',           'dashboard'),
@@ -451,11 +517,12 @@ NAV = [
 
 with st.sidebar:
     st.markdown(f"""
-    <div style='padding:28px 20px 18px;display:flex;align-items:center;gap:10px'>
-        <span style="color:var(--paper)">{ic('mark', 26, 1.4)}</span>
+    <div style='padding:28px 20px 18px;display:flex;align-items:center;gap:12px'>
+        <img src="data:image/jpeg;base64,{_logo_b64()}" width="40" height="40"
+             style="border-radius:50%;object-fit:cover;background:#fff;flex-shrink:0">
         <div>
             <div style='font-size:1rem;font-weight:600;color:var(--paper);letter-spacing:.01em'>MindScope</div>
-            <div style='font-size:.64rem;color:var(--text-faint);letter-spacing:.1em;text-transform:uppercase'>Depression Risk Model</div>
+            <div style='font-size:.64rem;color:var(--text-faint);letter-spacing:.1em;text-transform:uppercase'>Universitas Pelita Bangsa</div>
         </div>
     </div>
     <hr style='margin:0 0 12px'>
@@ -492,8 +559,8 @@ if page == 'dashboard':
             Student Depression Risk Predictor
         </h1>
         <p style='color:var(--text-dim);margin-top:18px;font-size:.95rem;max-width:560px;line-height:1.75'>
-            Memprediksi risiko depresi mahasiswa dari data psikologis, akademik, dan gaya hidup —
-            menggunakan Decision Tree dan Naive Bayes secara berdampingan.
+            Memprediksi risiko depresi mahasiswa dari data psikologis, akademik, dan gaya hidup,
+            memakai Decision Tree dan Naive Bayes secara berdampingan.
         </p>
     </div>
     """, unsafe_allow_html=True)
@@ -501,10 +568,10 @@ if page == 'dashboard':
     df = st.session_state.df
     c1, c2, c3, c4 = st.columns(4)
     vals = [
-        (f"{len(df):,}" if df is not None else "—", "Total Data"),
-        ((len(df.columns) - 1) if df is not None else "—", "Jumlah Fitur"),
-        (f"{st.session_state.train_acc*100:.1f}%" if st.session_state.train_acc else "—", "Akurasi Train"),
-        (f"{st.session_state.test_acc*100:.1f}%"  if st.session_state.test_acc  else "—", "Akurasi Test"),
+        (f"{len(df):,}" if df is not None else "N/A", "Total Data"),
+        ((len(df.columns) - 1) if df is not None else "N/A", "Jumlah Fitur"),
+        (f"{st.session_state.train_acc*100:.1f}%" if st.session_state.train_acc else "N/A", "Akurasi Train"),
+        (f"{st.session_state.test_acc*100:.1f}%"  if st.session_state.test_acc  else "N/A", "Akurasi Test"),
     ]
     for col, (v, lbl) in zip([c1, c2, c3, c4], vals):
         with col:
@@ -519,10 +586,10 @@ if page == 'dashboard':
     with la:
         st.markdown("<div class='sec-header'>Tentang Aplikasi</div>", unsafe_allow_html=True)
         st.markdown("""<div class='box-info'>
-            Aplikasi ini menganalisis faktor-faktor yang mempengaruhi risiko depresi mahasiswa —
-            tekanan akademik, CGPA, durasi tidur, stres finansial, dan lainnya.<br><br>
-            Dua algoritma tersedia: <b style='color:var(--paper)'>Decision Tree</b> (dapat diinterpretasi,
-            feature importance) dan <b style='color:var(--paper)'>Naive Bayes</b> (probabilistik, cepat).
+            Aplikasi ini menganalisis faktor-faktor yang mempengaruhi risiko depresi mahasiswa,
+            seperti tekanan akademik, CGPA, durasi tidur, dan stres finansial.<br><br>
+            Dua algoritma tersedia: <b style='color:var(--paper)'>Decision Tree</b> (mudah dibaca,
+            ada feature importance) dan <b style='color:var(--paper)'>Naive Bayes</b> (probabilistik, cepat).
             Bandingkan keduanya di halaman Training Model.
         </div>""", unsafe_allow_html=True)
 
@@ -574,7 +641,7 @@ elif page == 'data':
 
         c1, c2, c3, c4 = st.columns(4)
         missing_total = int(df.isnull().sum().sum())
-        depresi_pct   = f"{df['Depression'].mean()*100:.1f}%" if 'Depression' in df.columns else "—"
+        depresi_pct   = f"{df['Depression'].mean()*100:.1f}%" if 'Depression' in df.columns else "N/A"
         for col, (v, lbl) in zip([c1,c2,c3,c4], [
             (f"{len(df):,}", "Total Baris"),
             (len(df.columns), "Total Kolom"),
@@ -616,7 +683,7 @@ elif page == 'data':
             'Persen (%)': (df.isnull().sum().values / len(df) * 100).round(2),
         }).query('Missing > 0')
         if mv.empty:
-            st.success("Tidak ada missing values — dataset bersih.", icon=":material/check_circle:")
+            st.success("Tidak ada missing values. Dataset ini bersih.", icon=":material/check_circle:")
         else:
             st.dataframe(mv.reset_index(drop=True).style.background_gradient(
                 cmap='Reds', subset=['Persen (%)']), use_container_width=True)
@@ -853,8 +920,8 @@ elif page == 'train':
                              use_container_width=True)
 
                 sub_header("Confusion Matrix",
-                           "Tabel yang membandingkan prediksi model dengan kondisi sebenarnya — "
-                           "menunjukkan berapa banyak prediksi benar dan salah untuk tiap kelas.")
+                           "Tabel yang membandingkan prediksi model dengan kondisi sebenarnya, "
+                           "sekaligus menunjukkan berapa banyak prediksi benar dan salah untuk tiap kelas.")
                 cm  = st.session_state.cm
                 cfig = px.imshow(
                     cm, text_auto=True, aspect='auto',
@@ -982,8 +1049,8 @@ elif page == 'predict':
                         <div>{ic('alert', 36, 1.4)}</div>
                         <div style='font-size:1.3rem;font-weight:700;margin-top:10px;letter-spacing:.02em'>BERISIKO DEPRESI</div>
                         <div style='font-size:.84rem;margin-top:10px;line-height:1.65;color:#333'>
-                            Mahasiswa ini menunjukkan indikator risiko depresi yang signifikan.
-                            Disarankan untuk segera berkonsultasi dengan konselor atau psikolog.
+                            Profil ini punya beberapa tanda risiko depresi yang cukup kuat.
+                            Ada baiknya segera bicara dengan konselor atau psikolog kampus.
                         </div>
                     </div>""", unsafe_allow_html=True)
                 else:
@@ -991,8 +1058,8 @@ elif page == 'predict':
                         <div style='color:var(--paper)'>{ic('check', 36, 1.4)}</div>
                         <div style='font-size:1.3rem;font-weight:700;margin-top:10px;letter-spacing:.02em'>TIDAK BERISIKO</div>
                         <div style='color:var(--text-dim);font-size:.84rem;margin-top:10px;line-height:1.65'>
-                            Mahasiswa ini tidak menunjukkan risiko depresi yang signifikan.
-                            Tetap jaga kesehatan mental dengan pola hidup sehat.
+                            Profil ini belum menunjukkan tanda risiko depresi yang berarti.
+                            Tetap jaga pola tidur, makan, dan istirahat supaya kondisinya bertahan.
                         </div>
                     </div>""", unsafe_allow_html=True)
 
@@ -1014,7 +1081,7 @@ elif page == 'predict':
                 </div>
                 """, unsafe_allow_html=True)
 
-                # Gauge — risk zones colored (green -> amber -> red), bar reflects predicted class
+                # Gauge: risk zones colored green, amber, red; bar reflects the predicted class
                 bar_color = '#ff6b6b' if pred == 1 else '#5c7cfa'
                 gauge = go.Figure(go.Indicator(
                     mode="gauge+number",
