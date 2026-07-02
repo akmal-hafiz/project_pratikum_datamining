@@ -912,8 +912,8 @@ elif page == 'train':
                         <div style='color:var(--text-dim);font-size:.74rem;margin-top:6px'>{note}</div>
                     </div>""", unsafe_allow_html=True)
                 with m2:
-                    ok   = te_acc >= 0.80
-                    note = f"{ic('check',13)} Target &ge;80% tercapai" if ok else f"{ic('x',13)} Di bawah target 80%"
+                    ok   = te_acc >= 0.85
+                    note = f"{ic('check',13)} Target &ge;85% tercapai" if ok else f"{ic('x',13)} Di bawah target 85%"
                     st.markdown(f"""<div class='kpi-card'>
                         <div class='kpi-val'>{te_acc*100:.2f}%</div>
                         <div class='kpi-label'>Akurasi Test</div>
